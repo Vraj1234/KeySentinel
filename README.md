@@ -20,10 +20,15 @@ Secrets management is broken in most organizations:
 
 KeySentinel treats secrets as first-class entities with a lifecycle:
 
-```
-Discovery → Inventory → Risk Assessment → Rotation → Propagation → Verification → Monitoring
-     ^                                                                                |
-     └──────────────────────── Continuous Loop <──────────────────────────────────────┘
+```mermaid
+graph LR
+    A[Discovery] --> B[Inventory]
+    B --> C[Risk Assessment]
+    C --> D[Rotation]
+    D --> E[Propagation]
+    E --> F[Verification]
+    F --> G[Monitoring]
+    G -->|Continuous Loop| A
 ```
 
 The platform doesn't just find and rotate secrets — it **understands dependencies**. Before rotating a key, it maps every service, config file, and deployment that uses it, then updates them all in the correct order.
@@ -123,57 +128,43 @@ Handles emergency scenarios via event-driven automation:
 
 ## System Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                       KeySentinel Platform                           │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌─────────────────────────────────────────────────────────────┐   │
-│  │                    Web Dashboard                              │   │
-│  │  Secret Inventory | Risk Scores | Rotation History | Alerts  │   │
-│  └──────────────────────────┬──────────────────────────────────┘   │
-│                             │                                       │
-│  ┌──────────────────────────┴──────────────────────────────────┐   │
-│  │                    REST API (FastAPI)                         │   │
-│  │  /secrets | /graph | /rotate | /incidents | /compliance      │   │
-│  └──────────────────────────┬──────────────────────────────────┘   │
-│                             │                                       │
-│  ┌──────────────────────────┴──────────────────────────────────┐   │
-│  │                   Pipeline Engine                             │   │
-│  │                                                              │   │
-│  │  ┌────────────┐  ┌────────────┐  ┌─────────────────────┐   │   │
-│  │  │ Scheduler  │  │  Event     │  │  Approval Gates     │   │   │
-│  │  │ (cron)     │  │  Triggers  │  │  (human-in-loop)    │   │   │
-│  │  └─────┬──────┘  └─────┬──────┘  └─────────────────────┘   │   │
-│  │        └────────┬───────┘                                    │   │
-│  │                 ▼                                             │   │
-│  │  ┌──────────────────────────────────────────────────────┐   │   │
-│  │  │              Step Executor (deterministic)             │   │   │
-│  │  │  discover → map → assess → rotate → propagate → verify│   │   │
-│  │  └──────────────────────────────────────────────────────┘   │   │
-│  └─────────────────────────────────────────────────────────────┘   │
-│                                                                     │
-│  ┌───────────────────┐  ┌───────────────────┐  ┌──────────────┐   │
-│  │  Discovery Engine │  │  Dependency Graph  │  │ Risk Engine  │   │
-│  │  • Pattern match  │  │  • NetworkX graph  │  │ • Rule-based │   │
-│  │  • Entropy scan   │  │  • Blast radius    │  │ • Configurable│  │
-│  │  • AI classifier  │  │  • Rotation order  │  │ • Compliance │   │
-│  └───────────────────┘  └───────────────────┘  └──────────────┘   │
-│                                                                     │
-│  ┌───────────────────┐  ┌───────────────────┐  ┌──────────────┐   │
-│  │  Rotation Engine  │  │ Propagation Engine │  │ AI Utilities │   │
-│  │  • AWS/GCP/Azure  │  │  • K8s patches     │  │ • Classify   │   │
-│  │  • SaaS providers │  │  • CI/CD updates   │  │ • Summarize  │   │
-│  │  • Databases      │  │  • Health checks   │  │ • Report     │   │
-│  │  • Rollback       │  │  • Config PRs      │  │              │   │
-│  └───────────────────┘  └───────────────────┘  └──────────────┘   │
-│                                                                     │
-│  ┌─────────────────────────────────────────────────────────────┐   │
-│  │                    Data Layer                                 │   │
-│  │  PostgreSQL (inventory, audit log) | Redis (cache, queues)   │   │
-│  └─────────────────────────────────────────────────────────────┘   │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Platform["KeySentinel Platform"]
+        Dashboard["Web Dashboard\nSecret Inventory | Risk Scores | Rotation History | Alerts"]
+        API["REST API — FastAPI\n/secrets | /graph | /rotate | /incidents | /compliance"]
+
+        subgraph Engine["Pipeline Engine"]
+            Scheduler["Scheduler\n(cron)"]
+            Events["Event\nTriggers"]
+            Approval["Approval Gates\n(human-in-loop)"]
+            Executor["Step Executor (deterministic)\ndiscover → map → assess → rotate → propagate → verify"]
+            Scheduler --> Executor
+            Events --> Executor
+            Approval -.-> Executor
+        end
+
+        subgraph CoreModules["Core Modules"]
+            Discovery["Discovery Engine\n- Pattern match\n- Entropy scan\n- AI classifier"]
+            Graph["Dependency Graph\n- NetworkX graph\n- Blast radius\n- Rotation order"]
+            Risk["Risk Engine\n- Rule-based\n- Configurable\n- Compliance"]
+        end
+
+        subgraph ActionModules["Action Modules"]
+            Rotation["Rotation Engine\n- AWS/GCP/Azure\n- SaaS providers\n- Databases\n- Rollback"]
+            Propagation["Propagation Engine\n- K8s patches\n- CI/CD updates\n- Health checks\n- Config PRs"]
+            AI["AI Utilities\n- Classify\n- Summarize\n- Report"]
+        end
+
+        DataLayer["Data Layer\nPostgreSQL (inventory, audit log) | Redis (cache, queues)"]
+
+        Dashboard --> API
+        API --> Engine
+        Executor --> CoreModules
+        Executor --> ActionModules
+        CoreModules --> DataLayer
+        ActionModules --> DataLayer
+    end
 ```
 
 ## Example Workflow
