@@ -16,6 +16,9 @@ Secrets management is broken in most organizations:
 - **Leaked keys sit exposed** — a key gets committed to a public repo. You find out from GitHub's secret scanning email 4 hours later
 - **No visibility** — most teams can't answer: "How many active API keys do we have? Which ones have admin privileges? When were they last rotated?"
 
+<img width="1833" height="1552" alt="Screenshot 2026-05-19 at 7 18 45 PM" src="https://github.com/user-attachments/assets/65d2dd46-b283-4ad8-aa49-f7384723e641" />
+
+
 ## How It Works
 
 KeySentinel treats secrets as first-class entities with a lifecycle:
