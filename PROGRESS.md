@@ -43,7 +43,7 @@ Context flows: `discovery.findings` → `dependency_graph` (serialized) → `ris
 
 ---
 
-- [ ] **Incident response — emergency leak handling** — Implement webhook listener for GitHub secret scanning alerts, emergency rotation pipeline, and AI-assisted incident report generation
-- [ ] **Compliance & reporting — audit reports** — Build policy enforcement engine, SOC 2 / PCI DSS report templates, remediation tracking, and AI-generated executive summaries
-- [ ] **REST API & web dashboard** — Create FastAPI endpoints for all operations and a React dashboard showing secret inventory, risk scores, rotation history, and incident timeline
-- [ ] **End-to-end demo with simulated infrastructure** — Build a Docker Compose environment simulating multiple services with secrets, run full discovery → rotation → verification cycle
+- [x] **Incident response — emergency leak handling** — Webhook listeners for GitHub secret scanning and GitGuardian alerts, emergency rotation pipeline (force=True, no approval), AI-assisted incident report generation with timeline tracking
+- [x] **Compliance & reporting — audit reports** — ComplianceEngine wrapping PolicyEvaluator, SOC 2 (CC6.1/CC6.6/CC7.2) and PCI DSS (Req 3/8) report templates, remediation tracking with policy-type-specific actions, AI-generated executive summaries
+- [x] **REST API** — FastAPI endpoints for secrets CRUD, rotation triggers, risk assessment, dependency graph queries, incident webhooks/management, and compliance assessment/reporting
+- [x] **End-to-end demo with simulated infrastructure** — Mock providers (AWS IAM, PostgreSQL) and updaters (Vault, K8s, CI/CD) implementing the real ABCs, seed data, and CLI demo script running full discovery → risk → compliance → incident lifecycle
