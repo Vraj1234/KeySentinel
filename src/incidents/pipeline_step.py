@@ -1,6 +1,7 @@
 """Pipeline steps for incident response."""
 
 import logging
+from datetime import UTC, datetime
 from typing import Any
 
 from src.models.incident import IncidentSeverity
@@ -127,3 +128,77 @@ async def emergency_rotation_step(context: dict[str, Any]) -> StepResult:
     except Exception as e:
         logger.error("Emergency rotation failed: %s", e, exc_info=True)
         return StepResult(status=StepStatus.FAILED, error=str(e))
+
+
+async def generate_incident_report_step(
+    context: dict[str, Any],
+) -> StepResult:
+    """Generate an AI-assisted incident report and record timeline.
+
+    Reads:
+        context["incident"] — original incident data.
+        context.get("incident_assessment") — assessment output.
+        context.get("emergency_rotation") — rotation results.
+        context.get("anthropic_api_key") — API key for report generation.
+
+    Returns:
+        StepResult with report markdown, timeline, and response metrics.
+    """
+    from src.incidents.report_generator import IncidentReportGenerator
+    from src.incidents.timeline import (
+        IncidentTimeline,
+        calculate_response_time,
+        format_timeline_markdown,
+    )
+
+    incident = context.get("incident", {})
+    detected_str = incident.get("detected_at")
+    now = datetime.now(UTC)
+
+    # Parse detected_at from ISO string
+    detected_at = now
+    if detected_str:
+        try:
+            detected_at = datetime.fromisoformat(detected_str)
+        except (ValueError, TypeError):
+            pass
+
+    response_time = calculate_response_time(detected_at, now)
+
+    timeline = IncidentTimeline(
+        detected_at=detected_at,
+        contained_at=now,
+        response_time_seconds=response_time,
+    )
+
+    # Generate AI report if API key is available
+    api_key = context.get("anthropic_api_key", "")
+    if api_key:
+        generator = IncidentReportGenerator(api_key=api_key)
+        report_data = {
+            "incident": incident,
+            "incident_assessment": context.get("incident_assessment", {}),
+            "emergency_rotation": context.get("emergency_rotation", {}),
+            "timeline": {
+                "detected_at": detected_at.isoformat(),
+                "contained_at": now.isoformat(),
+                "response_time_seconds": response_time,
+            },
+        }
+        report_markdown = await generator.generate(report_data)
+    else:
+        report_markdown = IncidentReportGenerator._fallback_report(
+            {"incident": incident}
+        )
+
+    timeline_md = format_timeline_markdown(timeline)
+
+    return StepResult(
+        status=StepStatus.COMPLETED,
+        output={
+            "report": report_markdown,
+            "timeline_markdown": timeline_md,
+            "contained_at": now.isoformat(),
+            "response_time_seconds": response_time,
+        },
+    )
