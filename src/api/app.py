@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from src.api.routes import compliance, graph, incidents, risk, rotation, secrets
 from src.config import settings
 
 app = FastAPI(
@@ -18,6 +19,13 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
+
+app.include_router(secrets.router)
+app.include_router(rotation.router)
+app.include_router(risk.router)
+app.include_router(graph.router)
+app.include_router(incidents.router)
+app.include_router(compliance.router)
 
 
 @app.get("/health")
