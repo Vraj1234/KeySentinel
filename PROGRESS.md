@@ -3,7 +3,7 @@
 ## Build Checklist
 
 - [x] **Project scaffolding & provider abstraction layer** — Set up project structure, pyproject.toml, Docker config, FastAPI app skeleton, database models, and the base provider interface for secret rotation
-- [ ] **Discovery engine — secret scanning & classification** — Build repo scanner, config scanner, cloud provider auditor, and AI-powered classifier to inventory all secrets with location and type
+- [x] **Discovery engine — secret scanning & classification** — Build repo scanner, config scanner, cloud provider auditor, and AI-powered classifier to inventory all secrets with location and type
 - [ ] **Dependency graph — secret-to-service mapping** — Implement NetworkX-based dependency modeling, rotation order planning, and blast radius scoring
 - [ ] **Risk engine — scoring & policy rules** — Build configurable rule engine for age analysis, privilege auditing, exposure scoring, and compliance checks (SOC 2, PCI DSS)
 - [ ] **Rotation pipeline — multi-provider key rotation** — Implement deterministic rotation executor (create → propagate → verify → deactivate → delete) with rollback for AWS IAM, databases, and Stripe

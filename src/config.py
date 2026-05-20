@@ -24,6 +24,16 @@ class Settings(BaseSettings):
     approval_required_for_critical: bool = True
     approval_required_for_high: bool = False
 
+    # Discovery settings
+    scan_repo_paths: list[str] = []
+    scan_config_dirs: list[str] = []
+    scan_cloud_providers: list[str] = []
+    classifier_batch_size: int = 20
+    classifier_model: str = "claude-sonnet-4-20250514"
+    entropy_threshold: float = 4.5
+    scan_max_file_size_kb: int = 512
+    scan_git_history_commits: int = 100
+
     @model_validator(mode="after")
     def _validate_production_config(self) -> "Settings":
         if not self.debug and not self.anthropic_api_key:
